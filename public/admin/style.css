@@ -1,0 +1,56 @@
+:root {
+  --bg: #f4f6f5; --card: #fff; --text: #1d2a26; --muted: #6b7a75;
+  --line: #e1e7e4; --primary: #0b6e4f; --primary-text: #fff;
+  --ok: #1b8a4b; --warn: #b7791f; --bad: #c0392b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101614; --card: #18211e; --text: #e7efec; --muted: #93a39d;
+    --line: #2a3632; --primary: #34b58a; --primary-text: #06251a;
+    --ok: #4cc283; --warn: #e0a84b; --bad: #ef7b6e;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+h1, h2, h3 { margin: 0 0 12px; }
+.login { max-width: 360px; margin: 12vh auto; padding: 24px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.login label { display: block; margin: 12px 0 4px; color: var(--muted); font-size: 13px; }
+input, select { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; }
+button { font: inherit; cursor: pointer; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+button.primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+button.danger { color: var(--bad); }
+button:disabled { opacity: .5; cursor: default; }
+button.small { padding: 4px 9px; font-size: 13px; }
+header.top { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
+header.top .grow { flex: 1; font-weight: 600; }
+nav.tabs { display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; background: var(--card); border-bottom: 1px solid var(--line); }
+nav.tabs button { white-space: nowrap; }
+nav.tabs button.active { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.card .n { font-size: 26px; font-weight: 700; }
+.card .l { color: var(--muted); font-size: 13px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: end; }
+.filters > * { width: auto; min-width: 130px; }
+.tablewrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: .03em; }
+tr.click { cursor: pointer; }
+tr.click:hover { background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+.chip { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--bg); }
+.chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); }
+.muted { color: var(--muted); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pager { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.grid2 label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 3px; }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 5; }
+.modal { background: var(--card); border-radius: 12px; padding: 20px; max-width: 520px; width: 100%; max-height: 90vh; overflow: auto; }
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; }
+.kv div:nth-child(odd) { color: var(--muted); }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; z-index: 9; max-width: 90vw; }
