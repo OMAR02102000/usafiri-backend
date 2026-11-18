@@ -7,8 +7,11 @@ import { SettingsService } from './settings.service';
 export interface DistanceResult {
   distanceKm: number;
   durationMin: number;
-  /** google = umbali halisi wa barabara; estimate = makadirio ya mstari wa moja kwa moja */
-  source: 'google' | 'estimate';
+  /**
+   * google / osrm = umbali halisi wa barabara;
+   * estimate = makadirio ya mstari wa moja kwa moja
+   */
+  source: 'google' | 'osrm' | 'estimate';
 }
 
 @Injectable()
@@ -31,16 +34,36 @@ export class DistanceService {
       );
     }
 
-    const key = this.config.get<string>('GOOGLE_MAPS_API_KEY');
-    if (key) {
-      try {
-        const r = await this.fromGoogle(from, to, key);
+    const provider = this.provider();
+    try {
+      if (provider === 'google') {
+        const r = await this.fromGoogle(
+          from,
+          to,
+          this.config.get<string>('GOOGLE_MAPS_API_KEY') as string,
+        );
         if (r) return r;
-      } catch (e) {
-        this.logger.warn(`Google Routes imeshindwa, nakadiria: ${e}`);
+      } else if (provider === 'osrm') {
+        const r = await this.fromOsrm(from, to);
+        if (r) return r;
       }
+    } catch (e) {
+      this.logger.warn(`Njia ya ${provider} imeshindwa, nakadiria: ${e}`);
     }
     return this.estimate(straight);
+  }
+
+  /**
+   * Chanzo cha umbali. ROUTING_PROVIDER = google | osrm | estimate.
+   * Ikiwa haijawekwa: google kama GOOGLE_MAPS_API_KEY ipo, vinginevyo makadirio.
+   */
+  private provider(): 'google' | 'osrm' | 'estimate' {
+    const wanted = (this.config.get<string>('ROUTING_PROVIDER') ?? '').trim().toLowerCase();
+    const hasKey = !!this.config.get<string>('GOOGLE_MAPS_API_KEY');
+    if (wanted === 'osrm') return 'osrm';
+    if (wanted === 'estimate') return 'estimate';
+    if (wanted === 'google') return hasKey ? 'google' : 'estimate';
+    return hasKey ? 'google' : 'estimate';
   }
 
   /** Bila Google: barabara kwa kawaida ni ndefu ~35% kuliko mstari wa moja kwa moja. */
@@ -91,6 +114,39 @@ export class DistanceService {
       distanceKm: Math.round((route.distanceMeters / 1000) * 10) / 10,
       durationMin: Math.max(1, Math.ceil(seconds / 60)),
       source: 'google',
+    };
+  }
+
+  /**
+   * OSRM (OpenStreetMap): umbali halisi wa barabara, bila ufunguo. Seva ya bure
+   * ya router.project-osrm.org ni ya majaribio tu (matumizi madogo); kwa
+   * uzalishaji tumia seva yako mwenyewe kupitia OSRM_BASE_URL.
+   */
+  private async fromOsrm(from: LatLng, to: LatLng): Promise<DistanceResult | null> {
+    const base = (
+      this.config.get<string>('OSRM_BASE_URL') || 'https://router.project-osrm.org'
+    ).replace(/\/+$/, '');
+    const url =
+      `${base}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}` +
+      '?overview=false&alternatives=false&steps=false';
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'UsafiriBackend/1.0' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    const body: any = await res.json().catch(() => null);
+    if (!res.ok || body?.code !== 'Ok') {
+      this.logger.warn(`OSRM ${res.status}: ${body?.message ?? body?.code ?? 'hitilafu'}`);
+      return null;
+    }
+    const route = body?.routes?.[0];
+    if (!route || typeof route.distance !== 'number') {
+      this.logger.warn('OSRM haikurudisha njia.');
+      return null;
+    }
+    return {
+      distanceKm: Math.round((route.distance / 1000) * 10) / 10,
+      durationMin: Math.max(1, Math.ceil((Number(route.duration) || 0) / 60)),
+      source: 'osrm',
     };
   }
 }
